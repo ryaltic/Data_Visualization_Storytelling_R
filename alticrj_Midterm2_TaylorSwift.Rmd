@@ -1,0 +1,180 @@
+---
+title: "alticrj_Midterm2_TaylorSwift"
+author: "Ryan Altic"
+date: "2024-04-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load necessary packages
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(tidytext)
+library(ggwordcloud)
+```
+
+
+### Reading in the data
+```{r}
+urlTaylorSwift <- ("https://raw.githubusercontent.com/adashofdata/taylor_swift_data/main/Taylor_Swift_Genius/taylor_swift_genius_data.csv")
+
+urlTaylorSwift_Meta <- ("https://raw.githubusercontent.com/adashofdata/taylor_swift_data/main/Taylor_Swift_Spotify/taylor_swift_spotify_data.csv")
+
+metadataTaylorSwift <- read_csv(url(urlTaylorSwift_Meta))
+
+TaylorSwift <- read_csv(url(urlTaylorSwift))
+```
+
+
+
+```{r}
+TaylorSwift_Red <- TaylorSwift %>%
+  filter(Album == "Red")
+TaylorSwift_Midnights <- TaylorSwift %>%
+  filter(Album == "Midnights")
+
+tidy_Red <- TaylorSwift_Red %>%
+  unnest_tokens(word,Lyrics)
+
+tidy_Midnights <- TaylorSwift_Midnights %>%
+  unnest_tokens(word,Lyrics)
+
+stopwords <- get_stopwords()
+
+tidy_Red <- tidy_Red %>%
+  anti_join(stopwords)
+
+tidy_Midnights <- tidy_Midnights %>%
+  anti_join(stopwords)
+
+Red_com_words <- tidy_Red %>%
+  group_by(word) %>%
+  summarise(Number=n()) %>%
+  arrange(desc(Number)) %>%
+  slice(1:300)
+
+Midnights_com_words <- tidy_Midnights %>%
+  group_by(word) %>%
+  summarise(Number=n()) %>%
+  arrange(desc(Number)) %>%
+  slice(1:300)
+```
+
+### Word Clouds
+
+```{r}
+p.WCR <- ggplot(Red_com_words)+
+  geom_text_wordcloud(aes(label=word,size=Number))+
+  scale_size_area(max_size = 14)+
+  theme_minimal()+
+  labs(title="Red Album Word Cloud") +
+  theme(plot.title = element_text(hjust=0.5))
+
+p.WCMN <- ggplot(Midnights_com_words)+
+  geom_text_wordcloud(aes(label=word,size=Number))+
+  scale_size_area(max_size = 13)+
+  theme_minimal()+
+  labs(title="Midnights Album Word Cloud") +
+  theme(plot.title = element_text(hjust=0.5))
+```
+
+### Sentiment Analysis
+
+```{r}
+wordsentiments <- get_sentiments("bing")
+
+Red_sentiments <- tidy_Red %>%
+  inner_join(wordsentiments, by="word") 
+
+Midnights_sentiments <- tidy_Midnights %>%
+  inner_join(wordsentiments, by="word") 
+
+both_albums <- bind_rows(Red_sentiments,Midnights_sentiments) 
+
+both_albums <- both_albums %>%
+  group_by(Album,sentiment) %>%
+  summarise(Number=n()) %>%
+  mutate(Proportion = Number/sum(Number))
+
+p.S <- ggplot(both_albums) +
+  geom_col(aes(x=Album,y=Proportion,fill=sentiment)) +
+  annotate("label",x=1.5,y=.25,label="Positive Words",color="green4") +
+  annotate("label",x=1.5,y=.75,label="Negative Words",color="red4")+
+  annotate("label", x=1,y=.57,label="Midnights",color="gray40") +
+  annotate("label", x=2,y=.60,label="Red",color="gray40") +
+  scale_fill_manual(values=c("lightcoral","lightgreen"))+
+  theme_minimal() +
+  coord_cartesian(expand=F)+
+  labs(title="Proportion of Positive words to Negative words",
+       subtitle = "Red has slightly more positive sentiments than Midnights",
+       x=element_blank(),
+       y=element_blank()) +
+  theme(legend.position = "none",
+        axis.text.x = element_blank())
+```
+
+# Metadata and Song Sentiments
+
+```{r}
+both_albums_songs <- bind_rows(Red_sentiments,Midnights_sentiments)
+
+both_albums_songs <- both_albums_songs %>%
+  group_by(`Song Name`,Album,sentiment)%>%
+  summarise(Number=n()) %>%
+  mutate(Proportion = Number/sum(Number))
+
+metadataTaylorSwift <- metadataTaylorSwift %>%
+  filter(Album %in% c("Red","Midnights"))
+
+# Remove some songs that slightly different titles between the dataframes
+Metadata_Both <- merge(metadataTaylorSwift,both_albums_songs, by=c("Song Name","Album")) %>%
+  filter(sentiment == "positive")
+
+p.Valence <- ggplot(Metadata_Both) +
+  geom_point(aes(x=Proportion, y = Valence, color=Album)) +
+  labs(title = "Proportion of Positive words to Valence in each song",
+       subtitle = "For the most part, songs that have more positive sentiments than negative sentiments \nare more likely to have a higer Valence rating",
+       x="Proportion of Sentiments that are Positive") +
+  scale_color_manual(values=c("purple2","orange2")) +
+  annotate("label", x=.25,y=.75, label ="Song Key: \nMidnights = Purple \nRed = Orange")+
+  theme_minimal()+
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "none")
+
+p.Tempo <-ggplot(Metadata_Both) +
+  geom_point(aes(x=Proportion, y = Tempo, color=Album)) +
+  labs(title = "Proportion of Positive words to Tempo in each song",
+       subtitle = "Songs that have more positive sentiments than negative sentiments are more likely \nto have higher tempo",
+       x="Proportion of Sentiments that are Positive") +
+  scale_color_manual(values=c("purple2","orange2")) +
+  annotate("label", x=.25,y=150, label ="Song Key: \nMidnights = Purple \nRed = Orange")+
+  theme_minimal()+
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "none")
+
+p.Acousticness <- ggplot(Metadata_Both) +
+  geom_point(aes(x=Proportion, y = Acousticness, color=Album)) +
+  labs(title = "Proportion of Positive words to Acousticness in each song",
+       subtitle = "Songs that have more positive sentiments than negative sentiments are more likely \nto have a higer acousticness rating",
+       x="Proportion of Sentiments that are Positive") +
+  scale_color_manual(values=c("purple2","orange2")) +
+  annotate("label", x=.25,y=.75, label ="Song Key: \nMidnights = Purple \nRed = Orange")+
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "none")
+```
+
+### Dashboard and PNG
+
+```{r}
+Dashboard <- (p.WCMN + p.WCR + p.S) / (p.Acousticness + p.Tempo + p.Valence)
+
+ggsave(plot=Dashboard, filename = "TaylorSwift_Album.png",
+       width = 20,height = 12,dpi=600)
+```
+
