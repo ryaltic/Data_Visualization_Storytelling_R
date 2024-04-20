@@ -172,7 +172,10 @@ p.Acousticness <- ggplot(Metadata_Both) +
 ### Dashboard and PNG
 
 ```{r}
-Dashboard <- (p.WCMN + p.WCR + p.S) / (p.Acousticness + p.Tempo + p.Valence)
+Dashboard <- (p.WCMN + p.WCR + p.S) / (p.Acousticness + p.Tempo + p.Valence) +
+  plot_annotation(title = "Comparing Taylor Swift's Red Album to her Midnights Album",
+                  subtitle = "Red Album is slightly more positive than Midnights Album and feature songs that have higher Valence. While Midnights Album features song that have higher Acousticness and Tempo",
+                  caption = "Source: https://github.com/adashofdata/taylor_swift_data")
 
 ggsave(plot=Dashboard, filename = "TaylorSwift_Album.png",
        width = 20,height = 12,dpi=600)
