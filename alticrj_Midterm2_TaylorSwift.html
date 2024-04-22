@@ -402,6 +402,7 @@ metadataTaylorSwift &lt;- read_csv(url(urlTaylorSwift_Meta))</code></pre>
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <pre class="r"><code>TaylorSwift_Red &lt;- TaylorSwift %&gt;%
   filter(Album == &quot;Red&quot;)
+
 TaylorSwift_Midnights &lt;- TaylorSwift %&gt;%
   filter(Album == &quot;Midnights&quot;)
 
@@ -498,27 +499,38 @@ both_albums_songs &lt;- both_albums_songs %&gt;%
 <pre class="r"><code>metadataTaylorSwift &lt;- metadataTaylorSwift %&gt;%
   filter(Album %in% c(&quot;Red&quot;,&quot;Midnights&quot;))
 
-# Remove some songs that slightly different titles between the dataframes
+# Remove some songs that have slightly different titles between the dataframes
+# snow on the beach, antihero, state of grace
 Metadata_Both &lt;- merge(metadataTaylorSwift,both_albums_songs, by=c(&quot;Song Name&quot;,&quot;Album&quot;)) %&gt;%
   filter(sentiment == &quot;positive&quot;)
 
 p.Valence &lt;- ggplot(Metadata_Both) +
   geom_point(aes(x=Proportion, y = Valence, color=Album)) +
+  annotate(&quot;rect&quot;,xmin=0,xmax=.5,ymin=0,ymax=1,fill=&quot;red&quot;,alpha=0.08)+
+  annotate(&quot;text&quot;,x=.25,y=.5,label=&quot;Negative Songs&quot;, color =&quot;red4&quot;)+
+  annotate(&quot;rect&quot;,xmin=.5,xmax = 1,ymin=0,ymax=1,fill=&quot;green&quot;,alpha=0.08)+
+  annotate(&quot;text&quot;,x=.75,y=.5,label=&quot;Positive Songs&quot;, color =&quot;green4&quot;)+
   labs(title = &quot;Proportion of Positive words to Valence in each song&quot;,
        subtitle = &quot;For the most part, songs that have more positive sentiments than negative sentiments \nare more likely to have a higer Valence rating&quot;,
        x=&quot;Proportion of Sentiments that are Positive&quot;) +
+  coord_cartesian(expand = F, xlim=c(-0.02,1.02))+
   scale_color_manual(values=c(&quot;purple2&quot;,&quot;orange2&quot;)) +
   annotate(&quot;label&quot;, x=.25,y=.75, label =&quot;Song Key: \nMidnights = Purple \nRed = Orange&quot;)+
   theme_minimal()+
   theme(panel.grid.minor = element_blank(),
         legend.position = &quot;none&quot;)
 
-p.Tempo &lt;-ggplot(Metadata_Both) +
+p.Tempo &lt;- ggplot(Metadata_Both) +
   geom_point(aes(x=Proportion, y = Tempo, color=Album)) +
+  annotate(&quot;rect&quot;,xmin=0,xmax=.5,ymin=0,ymax=200,fill=&quot;red&quot;,alpha=0.08)+
+  annotate(&quot;text&quot;,x=.25,y=30,label=&quot;Negative Songs&quot;, color =&quot;red4&quot;)+
+  annotate(&quot;rect&quot;,xmin=.5,xmax = 1,ymin=0,ymax=200,fill=&quot;green&quot;,alpha=0.08)+
+  annotate(&quot;text&quot;,x=.75,y=30,label=&quot;Positive Songs&quot;, color =&quot;green4&quot;)+
   labs(title = &quot;Proportion of Positive words to Tempo in each song&quot;,
        subtitle = &quot;Songs that have more positive sentiments than negative sentiments are more likely \nto have higher tempo&quot;,
        x=&quot;Proportion of Sentiments that are Positive&quot;) +
   scale_color_manual(values=c(&quot;purple2&quot;,&quot;orange2&quot;)) +
+  coord_cartesian(expand = F, xlim=c(-0.02,1.02))+
   annotate(&quot;label&quot;, x=.25,y=150, label =&quot;Song Key: \nMidnights = Purple \nRed = Orange&quot;)+
   theme_minimal()+
   theme(panel.grid.minor = element_blank(),
@@ -526,10 +538,15 @@ p.Tempo &lt;-ggplot(Metadata_Both) +
 
 p.Acousticness &lt;- ggplot(Metadata_Both) +
   geom_point(aes(x=Proportion, y = Acousticness, color=Album)) +
+  annotate(&quot;rect&quot;,xmin=0,xmax=.5,ymin=0,ymax=1,fill=&quot;red&quot;,alpha=0.08)+
+  annotate(&quot;text&quot;,x=.25,y=.5,label=&quot;Negative Songs&quot;, color =&quot;red4&quot;)+
+  annotate(&quot;rect&quot;,xmin=.5,xmax = 1,ymin=0,ymax=1,fill=&quot;green&quot;,alpha=0.08)+
+  annotate(&quot;text&quot;,x=.75,y=.5,label=&quot;Positive Songs&quot;, color =&quot;green4&quot;)+
   labs(title = &quot;Proportion of Positive words to Acousticness in each song&quot;,
        subtitle = &quot;Songs that have more positive sentiments than negative sentiments are more likely \nto have a higer acousticness rating&quot;,
        x=&quot;Proportion of Sentiments that are Positive&quot;) +
   scale_color_manual(values=c(&quot;purple2&quot;,&quot;orange2&quot;)) +
+  coord_cartesian(expand = F, xlim=c(-0.02,1.02))+
   annotate(&quot;label&quot;, x=.25,y=.75, label =&quot;Song Key: \nMidnights = Purple \nRed = Orange&quot;)+
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),

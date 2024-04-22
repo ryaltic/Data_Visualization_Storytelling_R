@@ -35,6 +35,7 @@ TaylorSwift <- read_csv(url(urlTaylorSwift))
 ```{r}
 TaylorSwift_Red <- TaylorSwift %>%
   filter(Album == "Red")
+
 TaylorSwift_Midnights <- TaylorSwift %>%
   filter(Album == "Midnights")
 
@@ -131,27 +132,38 @@ both_albums_songs <- both_albums_songs %>%
 metadataTaylorSwift <- metadataTaylorSwift %>%
   filter(Album %in% c("Red","Midnights"))
 
-# Remove some songs that slightly different titles between the dataframes
+# Remove some songs that have slightly different titles between the dataframes
+# snow on the beach, antihero, state of grace
 Metadata_Both <- merge(metadataTaylorSwift,both_albums_songs, by=c("Song Name","Album")) %>%
   filter(sentiment == "positive")
 
 p.Valence <- ggplot(Metadata_Both) +
   geom_point(aes(x=Proportion, y = Valence, color=Album)) +
+  annotate("rect",xmin=0,xmax=.5,ymin=0,ymax=1,fill="red",alpha=0.08)+
+  annotate("text",x=.25,y=.5,label="Negative Songs", color ="red4")+
+  annotate("rect",xmin=.5,xmax = 1,ymin=0,ymax=1,fill="green",alpha=0.08)+
+  annotate("text",x=.75,y=.5,label="Positive Songs", color ="green4")+
   labs(title = "Proportion of Positive words to Valence in each song",
        subtitle = "For the most part, songs that have more positive sentiments than negative sentiments \nare more likely to have a higer Valence rating",
        x="Proportion of Sentiments that are Positive") +
+  coord_cartesian(expand = F, xlim=c(-0.02,1.02))+
   scale_color_manual(values=c("purple2","orange2")) +
   annotate("label", x=.25,y=.75, label ="Song Key: \nMidnights = Purple \nRed = Orange")+
   theme_minimal()+
   theme(panel.grid.minor = element_blank(),
         legend.position = "none")
 
-p.Tempo <-ggplot(Metadata_Both) +
+p.Tempo <- ggplot(Metadata_Both) +
   geom_point(aes(x=Proportion, y = Tempo, color=Album)) +
+  annotate("rect",xmin=0,xmax=.5,ymin=0,ymax=200,fill="red",alpha=0.08)+
+  annotate("text",x=.25,y=30,label="Negative Songs", color ="red4")+
+  annotate("rect",xmin=.5,xmax = 1,ymin=0,ymax=200,fill="green",alpha=0.08)+
+  annotate("text",x=.75,y=30,label="Positive Songs", color ="green4")+
   labs(title = "Proportion of Positive words to Tempo in each song",
        subtitle = "Songs that have more positive sentiments than negative sentiments are more likely \nto have higher tempo",
        x="Proportion of Sentiments that are Positive") +
   scale_color_manual(values=c("purple2","orange2")) +
+  coord_cartesian(expand = F, xlim=c(-0.02,1.02))+
   annotate("label", x=.25,y=150, label ="Song Key: \nMidnights = Purple \nRed = Orange")+
   theme_minimal()+
   theme(panel.grid.minor = element_blank(),
@@ -159,10 +171,15 @@ p.Tempo <-ggplot(Metadata_Both) +
 
 p.Acousticness <- ggplot(Metadata_Both) +
   geom_point(aes(x=Proportion, y = Acousticness, color=Album)) +
+  annotate("rect",xmin=0,xmax=.5,ymin=0,ymax=1,fill="red",alpha=0.08)+
+  annotate("text",x=.25,y=.5,label="Negative Songs", color ="red4")+
+  annotate("rect",xmin=.5,xmax = 1,ymin=0,ymax=1,fill="green",alpha=0.08)+
+  annotate("text",x=.75,y=.5,label="Positive Songs", color ="green4")+
   labs(title = "Proportion of Positive words to Acousticness in each song",
        subtitle = "Songs that have more positive sentiments than negative sentiments are more likely \nto have a higer acousticness rating",
        x="Proportion of Sentiments that are Positive") +
   scale_color_manual(values=c("purple2","orange2")) +
+  coord_cartesian(expand = F, xlim=c(-0.02,1.02))+
   annotate("label", x=.25,y=.75, label ="Song Key: \nMidnights = Purple \nRed = Orange")+
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
