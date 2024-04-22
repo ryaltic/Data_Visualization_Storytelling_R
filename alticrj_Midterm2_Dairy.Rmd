@@ -15,92 +15,39 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(patchwork)
 ```
+
 ### Reading in the data
 
 ```{r}
 dairyproduction_url = ("https://raw.githubusercontent.com/oconnellmj/sta309/main/milk-production-tonnes.csv")
 dairyconsumption_url = ("https://raw.githubusercontent.com/oconnellmj/sta309/main/per-capita-milk-consumption.csv")
 
-dairyproduction = read_csv(url(dairyproduction_url))
-dairyproduction <- dairyproduction %>%
-  filter(Year >= 2011) %>%
-  filter(Year <= 2021) %>%
-  filter(Entity != "French Guiana") %>%
-  filter(Entity != "Trinidad and Tobago")
+dairyproduction = read_csv(url(dairyproduction_url)) %>%
+  filter(between(Year,2011,2021) & Entity != "French Guiana" & Entity != "Trinidad and Tobago") 
 
 dairyconsumption = read_csv(url(dairyconsumption_url)) %>%
-  filter(Year >= 2011) %>%
-  filter(Entity != "French Guiana") %>%
-  filter(Entity != "Trinidad and Tobago")
+  filter(Year >= 2011 & Entity != "French Guiana" & Entity != "Trinidad and Tobago") 
+south_america <- map_data("world") %>%
+  filter(between(long,-81,-35) & between(lat,-55,12) & region != "Falkland Islands" & region != "South Georgia" & region != "French Guiena" & region != "Tobago" & region != "Trindad")
 
 ```
-# Preprocessing
+
+
+### Plot of Dairy Consumption
 
 ```{r}
-south_america <- map_data("world") %>%
-  filter(long <= -35) %>%
-  filter(long >= -81) %>%
-  filter(lat >= -55) %>%
-  filter(lat <= 12) %>%
-  filter(region != "Falkland Islands") %>%
-  filter(region != "South Georgia") %>%
-  filter(region != "French Guiena") %>%
-  filter(region != "Tobago") %>%
-  filter(region != "Trindad")
-  
-
-south_america_centroids <- south_america %>% 
-  group_by(region) %>%
-  summarize_at(vars(long, lat), ~ mean(range(.)))
-
-Code <- dairyconsumption %>%
-  group_by(Entity,Code) %>%
-  summarise(meanmilk = mean(`Milk consumption (kilograms per year per capita)`))%>%
-  select(Entity,Code)
-
-south_america_code <- Code %>%
-  right_join(south_america_centroids, by = c("Entity" = "region"))
-
-dairyconsumption_SA <- dairyconsumption %>%
-  right_join(south_america, by = c("Entity" ="region"))
-
-dairyproduction_SA <- dairyproduction %>%
-  right_join(south_america, by = c("Entity" ="region"))
-
-mean.consumption <- dairyconsumption_SA %>%
-  filter(Year >= 2011) %>%
+dairyconsumption_mean <- dairyconsumption %>%
   group_by(Entity)%>%
   summarise(mean_consumption = mean(`Milk consumption (kilograms per year per capita)`))
 
-dairyconsumption_SA <- dairyconsumption_SA %>%
-  right_join(mean.consumption, by = "Entity")
+dairyconsumption_SA_mean <- dairyconsumption_mean %>%
+  right_join(south_america, by = c("Entity" ="region"))
 
-mean.production <- dairyproduction_SA %>%
-  filter(Year >= 2011) %>%
-  group_by(Entity)%>%
-  summarise(mean_production = mean(`Milk Production (tonnes)`))
-
-dairyproduction_SA <- dairyproduction_SA %>%
-  right_join(mean.production, by = "Entity")
-
-dairyconsumption_SA <- dairyconsumption_SA %>%
-  select(-Code,-order,-subregion)
-  
-dairyproduction_SA <- dairyproduction_SA %>%
-  select(-Code,-order,-subregion)
-  
-```
-
-
-
-# Plot of Dairy Consumption
-
-```{r}
-
-p.DC <-ggplot(data= dairyconsumption_SA, aes(x=long,y=lat)) +
+p.DC <- ggplot(data= dairyconsumption_SA_mean, aes(x=long,y=lat)) +
   geom_polygon(aes(color=Entity,group=group, fill=mean_consumption),color = "gray20")+
-  geom_text(data=south_america_code,aes(label=Code),color="gray15",fontface="bold",
-            size =3.5)+
+  annotate("text",x=-46,y=-38,label="Uruguay", color="gray15",fontface="bold")+
+  geom_segment(aes(x = -46, y = -37, xend = -55.5, yend = -33),
+                  arrow = arrow(length = unit(0.2, "cm"))) +
   coord_map("conic", lat0=-23) +
   scale_fill_gradient(low="gray95",high = "blue3")+
   annotate("text",x=-55,y=15, label = "Mean Dairy Consumption", fontface="bold",
@@ -109,17 +56,30 @@ p.DC <-ggplot(data= dairyconsumption_SA, aes(x=long,y=lat)) +
        y=element_blank(),
        fill ="Milk consumption \n(kg per capita)") +
   theme_minimal()+
-  theme()
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
 ```
 
-# Plot of Dairy Production
+### Plot of Dairy Production
 
 ```{r}
 
-p.DP <- ggplot(data= dairyproduction_SA, aes(x=long,y=lat)) +
+dairyproduction_mean <- dairyproduction %>%
+  group_by(Entity)%>%
+  summarise(mean_production = mean(`Milk Production (tonnes)`))
+
+dairyproduction_SA_mean <- dairyproduction_mean %>%
+  right_join(south_america, by = c("Entity" ="region"))
+
+p.DP <- ggplot(data= dairyproduction_SA_mean, aes(x=long,y=lat)) +
   geom_polygon(aes(group=group,color=Entity,fill=mean_production),color = "gray20")+
-  geom_text(data=south_america_code,aes(label=Code),color="gray15",fontface="bold",
-            size = 3.5)+
+  annotate("text",x=-46,y=-38,label="Uruguay", color="gray15",fontface="bold")+
+  geom_segment(aes(x = -46, y = -37, xend = -55.5, yend = -33),
+                  arrow = arrow(length = unit(0.2, "cm"))) +
   coord_map("conic", lat0=-23) +
   scale_fill_gradient(low="gray95",high = "orange3", label=c("0","10","20","30","40"))+
   annotate("text",x=-55,y=15, label = "Mean Dairy Production", fontface="bold",
@@ -127,17 +87,27 @@ p.DP <- ggplot(data= dairyproduction_SA, aes(x=long,y=lat)) +
   labs(x=element_blank(),
        y=element_blank(),
        fill ="Milk Production \n(millions of tonnes)") +
-  theme_minimal()
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
 ```
 
-# Plot of Dairy Consumption over time
+### Plot of Dairy Consumption over time
 
 ```{r}
+dairyconsumption_SA <- dairyconsumption %>%
+  right_join(south_america, by = c("Entity" ="region"))
+
 p.DCline <- ggplot(data=dairyconsumption_SA) +
   geom_line(data=dairyconsumption_SA %>% filter(Entity != "Uruguay"),aes(x=Year, y=`Milk consumption (kilograms per year per capita)`,
                 group = Entity, color = Entity),color="gray70") +
   geom_line(data = dairyconsumption_SA %>% filter(Entity == "Uruguay"), aes(x=Year,y=`Milk consumption (kilograms per year per capita)`),color="blue")+
   annotate("label",x=2018,y=200, label = "Uruguay",color="blue2",fontface="bold")+
+  annotate("text",2014.5,y=200,label = "Uruguay has been top 3 in dairy consumption \nover the last ten years and in many years consumed the most dairy", size=3,color="blue3",fontface="bold") +
   labs(x=element_blank(),
        y=element_blank(),
        title = "Diary Consumption (kg per capita)")+
@@ -147,13 +117,17 @@ p.DCline <- ggplot(data=dairyconsumption_SA) +
   theme(panel.grid.minor = element_blank())
 ```
 
-# Plot of Dairy Production over time
+### Plot of Dairy Production over time
 
 ```{r}
+dairyproduction_SA <- dairyproduction %>%
+  right_join(south_america, by = c("Entity" ="region"))
+
 p.DPline <- ggplot(data=dairyproduction_SA) +
     geom_line(data=dairyproduction_SA %>% filter(Entity != "Uruguay"),aes(x=Year, y=`Milk Production (tonnes)`,group = Entity, color = Entity),color="gray70") +
   geom_line(data = dairyproduction_SA %>% filter(Entity == "Uruguay"), aes(x=Year,y=`Milk Production (tonnes)`),color="blue")+
   annotate("label",x=2015,y=4000000, label = "Uruguay",color="blue2",fontface="bold")+
+  annotate("text",x=2016,y=20000000,label="Uruguay is middle of the pack in terms of dairy production over the last ten years", size=3, color="blue3", fontface="bold")+
   labs(x=element_blank(),
        y=element_blank(),
        title = "Diary Production (millions of tonnes)")+
@@ -164,35 +138,28 @@ p.DPline <- ggplot(data=dairyproduction_SA) +
   theme(panel.grid.minor = element_blank())
 ```
 
-# Plot of relationship between dairy production and consumption
+### Plot of relationship between dairy production and consumption
 
 ```{r}
 
-dairy_prod_2021 <- dairyproduction_SA %>%
-  filter(Year ==2021) %>%
-  select(-`Milk Production (tonnes)`)
-
-dairy_cons_2021 <- dairyconsumption_SA %>%
-  filter(Year==2021) %>%
-  select(-`Milk consumption (kilograms per year per capita)`)
+bothdairy_cons_prod <- merge(dairyproduction_SA_mean,dairyconsumption_SA_mean)
 
 
-dairy_prod_cons <- merge(dairy_cons_2021,dairy_prod_2021)
-
-dairy_prod_cons<- dairy_prod_cons %>%
-  mutate(Ratio_prod_by_cons= mean_production/mean_consumption) %>%
+bothdairy_cons_prod <- bothdairy_cons_prod %>%
+  mutate(Ratio_prod_by_cons = mean_production/mean_consumption) %>%
   mutate(num = 1) %>%
   group_by(Entity,Ratio_prod_by_cons) %>%
   summarise(dum <- mean(num)) %>%
   select(Entity,Ratio_prod_by_cons)
 
-dairy_prodcons_SA <- dairy_prod_cons %>%
-  right_join(south_america, by = c("Entity" = "region"))
+bothdairy_cons_prod_SA <- bothdairy_cons_prod %>%
+  right_join(south_america, by = c("Entity" = "region")) 
 
-p.R <- ggplot(data= dairy_prodcons_SA, aes(x=long,y=lat)) +
+p.R <- ggplot(data= bothdairy_cons_prod_SA, aes(x=long,y=lat)) +
   geom_polygon(aes(color=Entity,group=group, fill=Ratio_prod_by_cons),color = "gray20")+
-  geom_text(data=south_america_code,aes(label=Code),color="gray15",fontface="bold",
-            size =3.5)+
+  annotate("text",x=-35,y=-30,label="Uruguay", color="gray15",fontface="bold")+
+  geom_segment(aes(x = -45, y = -32, xend = -55.5, yend = -33),
+                  arrow = arrow(length = unit(0.2, "cm"))) +
   coord_map("conic", lat0=-23) +
   scale_fill_gradient(low="gray95",high = "green3", label = c("0","50","100","150","200","250"))+
   annotate("text",x=-55,y=15, label = "Dairy Produced per \nDairy Consumed", fontface="bold",
@@ -203,16 +170,23 @@ p.R <- ggplot(data= dairy_prodcons_SA, aes(x=long,y=lat)) +
   annotate("text",x=-40,y=-50,label= "Greenish countries \nproduce way more \ndairy \nthan they \nconsume", size=3,fontface="bold") +
   theme_minimal()+
   theme(legend.position = "bottom",
-        legend.title = element_text(size=7))
+        legend.title = element_text(size=7),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
 
 ```
 
-# Dashboard and PNG
+
+### Dashboard and PNG
 
 ```{r}
 Dashboard <- (p.DPline)/(p.DCline)/(p.DP | p.DC | p.R) +
   plot_annotation(title = "South American Countries' dairy consumption and dairy production (2011-2021)",
-                  subtitle = "Uruguay consumes a lot of dairy and does not produces a lot of diary when compared to other South America Countries",
+                  subtitle = "Uruguay consumes the most dairy in many years but Uruguay is somewhat in the middle in dairy production when compared to other South America Countries",
                   caption = "Source: OurWorldInData.org and Food and Agriculture Organization of the United Nations") 
 
 

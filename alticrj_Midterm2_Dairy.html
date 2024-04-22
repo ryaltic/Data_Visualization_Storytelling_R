@@ -377,7 +377,8 @@ display: none;
 <pre class="r"><code>dairyproduction_url = (&quot;https://raw.githubusercontent.com/oconnellmj/sta309/main/milk-production-tonnes.csv&quot;)
 dairyconsumption_url = (&quot;https://raw.githubusercontent.com/oconnellmj/sta309/main/per-capita-milk-consumption.csv&quot;)
 
-dairyproduction = read_csv(url(dairyproduction_url))</code></pre>
+dairyproduction = read_csv(url(dairyproduction_url)) %&gt;%
+  filter(between(Year,2011,2021) &amp; Entity != &quot;French Guiana&quot; &amp; Entity != &quot;Trinidad and Tobago&quot;) </code></pre>
 <pre><code>## Rows: 13615 Columns: 4
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -386,16 +387,8 @@ dairyproduction = read_csv(url(dairyproduction_url))</code></pre>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>dairyproduction &lt;- dairyproduction %&gt;%
-  filter(Year &gt;= 2011) %&gt;%
-  filter(Year &lt;= 2021) %&gt;%
-  filter(Entity != &quot;French Guiana&quot;) %&gt;%
-  filter(Entity != &quot;Trinidad and Tobago&quot;)
-
-dairyconsumption = read_csv(url(dairyconsumption_url)) %&gt;%
-  filter(Year &gt;= 2011) %&gt;%
-  filter(Entity != &quot;French Guiana&quot;) %&gt;%
-  filter(Entity != &quot;Trinidad and Tobago&quot;)</code></pre>
+<pre class="r"><code>dairyconsumption = read_csv(url(dairyconsumption_url)) %&gt;%
+  filter(Year &gt;= 2011 &amp; Entity != &quot;French Guiana&quot; &amp; Entity != &quot;Trinidad and Tobago&quot;) </code></pre>
 <pre><code>## Rows: 12592 Columns: 4
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -404,76 +397,23 @@ dairyconsumption = read_csv(url(dairyconsumption_url)) %&gt;%
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div id="preprocessing" class="section level1">
-<h1>Preprocessing</h1>
 <pre class="r"><code>south_america &lt;- map_data(&quot;world&quot;) %&gt;%
-  filter(long &lt;= -35) %&gt;%
-  filter(long &gt;= -81) %&gt;%
-  filter(lat &gt;= -55) %&gt;%
-  filter(lat &lt;= 12) %&gt;%
-  filter(region != &quot;Falkland Islands&quot;) %&gt;%
-  filter(region != &quot;South Georgia&quot;) %&gt;%
-  filter(region != &quot;French Guiena&quot;) %&gt;%
-  filter(region != &quot;Tobago&quot;) %&gt;%
-  filter(region != &quot;Trindad&quot;)
-  
-
-south_america_centroids &lt;- south_america %&gt;% 
-  group_by(region) %&gt;%
-  summarize_at(vars(long, lat), ~ mean(range(.)))
-
-Code &lt;- dairyconsumption %&gt;%
-  group_by(Entity,Code) %&gt;%
-  summarise(meanmilk = mean(`Milk consumption (kilograms per year per capita)`))%&gt;%
-  select(Entity,Code)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;Entity&#39;. You can override using the
-## `.groups` argument.</code></pre>
-<pre class="r"><code>south_america_code &lt;- Code %&gt;%
-  right_join(south_america_centroids, by = c(&quot;Entity&quot; = &quot;region&quot;))
-
-dairyconsumption_SA &lt;- dairyconsumption %&gt;%
-  right_join(south_america, by = c(&quot;Entity&quot; =&quot;region&quot;))</code></pre>
-<pre><code>## Warning in right_join(., south_america, by = c(Entity = &quot;region&quot;)): Detected an unexpected many-to-many relationship between `x` and `y`.
-## ℹ Row 89 of `x` matches multiple rows in `y`.
-## ℹ Row 1 of `y` matches multiple rows in `x`.
-## ℹ If a many-to-many relationship is expected, set `relationship =
-##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
-<pre class="r"><code>dairyproduction_SA &lt;- dairyproduction %&gt;%
-  right_join(south_america, by = c(&quot;Entity&quot; =&quot;region&quot;))</code></pre>
-<pre><code>## Warning in right_join(., south_america, by = c(Entity = &quot;region&quot;)): Detected an unexpected many-to-many relationship between `x` and `y`.
-## ℹ Row 89 of `x` matches multiple rows in `y`.
-## ℹ Row 1 of `y` matches multiple rows in `x`.
-## ℹ If a many-to-many relationship is expected, set `relationship =
-##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
-<pre class="r"><code>mean.consumption &lt;- dairyconsumption_SA %&gt;%
-  filter(Year &gt;= 2011) %&gt;%
+  filter(between(long,-81,-35) &amp; between(lat,-55,12) &amp; region != &quot;Falkland Islands&quot; &amp; region != &quot;South Georgia&quot; &amp; region != &quot;French Guiena&quot; &amp; region != &quot;Tobago&quot; &amp; region != &quot;Trindad&quot;)</code></pre>
+</div>
+<div id="plot-of-dairy-consumption" class="section level3">
+<h3>Plot of Dairy Consumption</h3>
+<pre class="r"><code>dairyconsumption_mean &lt;- dairyconsumption %&gt;%
   group_by(Entity)%&gt;%
   summarise(mean_consumption = mean(`Milk consumption (kilograms per year per capita)`))
 
-dairyconsumption_SA &lt;- dairyconsumption_SA %&gt;%
-  right_join(mean.consumption, by = &quot;Entity&quot;)
+dairyconsumption_SA_mean &lt;- dairyconsumption_mean %&gt;%
+  right_join(south_america, by = c(&quot;Entity&quot; =&quot;region&quot;))
 
-mean.production &lt;- dairyproduction_SA %&gt;%
-  filter(Year &gt;= 2011) %&gt;%
-  group_by(Entity)%&gt;%
-  summarise(mean_production = mean(`Milk Production (tonnes)`))
-
-dairyproduction_SA &lt;- dairyproduction_SA %&gt;%
-  right_join(mean.production, by = &quot;Entity&quot;)
-
-dairyconsumption_SA &lt;- dairyconsumption_SA %&gt;%
-  select(-Code,-order,-subregion)
-  
-dairyproduction_SA &lt;- dairyproduction_SA %&gt;%
-  select(-Code,-order,-subregion)</code></pre>
-</div>
-<div id="plot-of-dairy-consumption" class="section level1">
-<h1>Plot of Dairy Consumption</h1>
-<pre class="r"><code>p.DC &lt;-ggplot(data= dairyconsumption_SA, aes(x=long,y=lat)) +
+p.DC &lt;- ggplot(data= dairyconsumption_SA_mean, aes(x=long,y=lat)) +
   geom_polygon(aes(color=Entity,group=group, fill=mean_consumption),color = &quot;gray20&quot;)+
-  geom_text(data=south_america_code,aes(label=Code),color=&quot;gray15&quot;,fontface=&quot;bold&quot;,
-            size =3.5)+
+  annotate(&quot;text&quot;,x=-46,y=-38,label=&quot;Uruguay&quot;, color=&quot;gray15&quot;,fontface=&quot;bold&quot;)+
+  geom_segment(aes(x = -46, y = -37, xend = -55.5, yend = -33),
+                  arrow = arrow(length = unit(0.2, &quot;cm&quot;))) +
   coord_map(&quot;conic&quot;, lat0=-23) +
   scale_fill_gradient(low=&quot;gray95&quot;,high = &quot;blue3&quot;)+
   annotate(&quot;text&quot;,x=-55,y=15, label = &quot;Mean Dairy Consumption&quot;, fontface=&quot;bold&quot;,
@@ -482,14 +422,27 @@ dairyproduction_SA &lt;- dairyproduction_SA %&gt;%
        y=element_blank(),
        fill =&quot;Milk consumption \n(kg per capita)&quot;) +
   theme_minimal()+
-  theme()</code></pre>
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())</code></pre>
 </div>
-<div id="plot-of-dairy-production" class="section level1">
-<h1>Plot of Dairy Production</h1>
-<pre class="r"><code>p.DP &lt;- ggplot(data= dairyproduction_SA, aes(x=long,y=lat)) +
+<div id="plot-of-dairy-production" class="section level3">
+<h3>Plot of Dairy Production</h3>
+<pre class="r"><code>dairyproduction_mean &lt;- dairyproduction %&gt;%
+  group_by(Entity)%&gt;%
+  summarise(mean_production = mean(`Milk Production (tonnes)`))
+
+dairyproduction_SA_mean &lt;- dairyproduction_mean %&gt;%
+  right_join(south_america, by = c(&quot;Entity&quot; =&quot;region&quot;))
+
+p.DP &lt;- ggplot(data= dairyproduction_SA_mean, aes(x=long,y=lat)) +
   geom_polygon(aes(group=group,color=Entity,fill=mean_production),color = &quot;gray20&quot;)+
-  geom_text(data=south_america_code,aes(label=Code),color=&quot;gray15&quot;,fontface=&quot;bold&quot;,
-            size = 3.5)+
+  annotate(&quot;text&quot;,x=-46,y=-38,label=&quot;Uruguay&quot;, color=&quot;gray15&quot;,fontface=&quot;bold&quot;)+
+  geom_segment(aes(x = -46, y = -37, xend = -55.5, yend = -33),
+                  arrow = arrow(length = unit(0.2, &quot;cm&quot;))) +
   coord_map(&quot;conic&quot;, lat0=-23) +
   scale_fill_gradient(low=&quot;gray95&quot;,high = &quot;orange3&quot;, label=c(&quot;0&quot;,&quot;10&quot;,&quot;20&quot;,&quot;30&quot;,&quot;40&quot;))+
   annotate(&quot;text&quot;,x=-55,y=15, label = &quot;Mean Dairy Production&quot;, fontface=&quot;bold&quot;,
@@ -497,15 +450,29 @@ dairyproduction_SA &lt;- dairyproduction_SA %&gt;%
   labs(x=element_blank(),
        y=element_blank(),
        fill =&quot;Milk Production \n(millions of tonnes)&quot;) +
-  theme_minimal()</code></pre>
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())</code></pre>
 </div>
-<div id="plot-of-dairy-consumption-over-time" class="section level1">
-<h1>Plot of Dairy Consumption over time</h1>
+<div id="plot-of-dairy-consumption-over-time" class="section level3">
+<h3>Plot of Dairy Consumption over time</h3>
+<pre class="r"><code>dairyconsumption_SA &lt;- dairyconsumption %&gt;%
+  right_join(south_america, by = c(&quot;Entity&quot; =&quot;region&quot;))</code></pre>
+<pre><code>## Warning in right_join(., south_america, by = c(Entity = &quot;region&quot;)): Detected an unexpected many-to-many relationship between `x` and `y`.
+## ℹ Row 89 of `x` matches multiple rows in `y`.
+## ℹ Row 1 of `y` matches multiple rows in `x`.
+## ℹ If a many-to-many relationship is expected, set `relationship =
+##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
 <pre class="r"><code>p.DCline &lt;- ggplot(data=dairyconsumption_SA) +
   geom_line(data=dairyconsumption_SA %&gt;% filter(Entity != &quot;Uruguay&quot;),aes(x=Year, y=`Milk consumption (kilograms per year per capita)`,
                 group = Entity, color = Entity),color=&quot;gray70&quot;) +
   geom_line(data = dairyconsumption_SA %&gt;% filter(Entity == &quot;Uruguay&quot;), aes(x=Year,y=`Milk consumption (kilograms per year per capita)`),color=&quot;blue&quot;)+
   annotate(&quot;label&quot;,x=2018,y=200, label = &quot;Uruguay&quot;,color=&quot;blue2&quot;,fontface=&quot;bold&quot;)+
+  annotate(&quot;text&quot;,2014.5,y=200,label = &quot;Uruguay has been top 3 in dairy consumption \nover the last ten years and in many years consumed the most dairy&quot;, size=3,color=&quot;blue3&quot;,fontface=&quot;bold&quot;) +
   labs(x=element_blank(),
        y=element_blank(),
        title = &quot;Diary Consumption (kg per capita)&quot;)+
@@ -514,12 +481,20 @@ dairyproduction_SA &lt;- dairyproduction_SA %&gt;%
   theme_minimal() +
   theme(panel.grid.minor = element_blank())</code></pre>
 </div>
-<div id="plot-of-dairy-production-over-time" class="section level1">
-<h1>Plot of Dairy Production over time</h1>
+<div id="plot-of-dairy-production-over-time" class="section level3">
+<h3>Plot of Dairy Production over time</h3>
+<pre class="r"><code>dairyproduction_SA &lt;- dairyproduction %&gt;%
+  right_join(south_america, by = c(&quot;Entity&quot; =&quot;region&quot;))</code></pre>
+<pre><code>## Warning in right_join(., south_america, by = c(Entity = &quot;region&quot;)): Detected an unexpected many-to-many relationship between `x` and `y`.
+## ℹ Row 89 of `x` matches multiple rows in `y`.
+## ℹ Row 1 of `y` matches multiple rows in `x`.
+## ℹ If a many-to-many relationship is expected, set `relationship =
+##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
 <pre class="r"><code>p.DPline &lt;- ggplot(data=dairyproduction_SA) +
     geom_line(data=dairyproduction_SA %&gt;% filter(Entity != &quot;Uruguay&quot;),aes(x=Year, y=`Milk Production (tonnes)`,group = Entity, color = Entity),color=&quot;gray70&quot;) +
   geom_line(data = dairyproduction_SA %&gt;% filter(Entity == &quot;Uruguay&quot;), aes(x=Year,y=`Milk Production (tonnes)`),color=&quot;blue&quot;)+
   annotate(&quot;label&quot;,x=2015,y=4000000, label = &quot;Uruguay&quot;,color=&quot;blue2&quot;,fontface=&quot;bold&quot;)+
+  annotate(&quot;text&quot;,x=2016,y=20000000,label=&quot;Uruguay is middle of the pack in terms of dairy production over the last ten years&quot;, size=3, color=&quot;blue3&quot;, fontface=&quot;bold&quot;)+
   labs(x=element_blank(),
        y=element_blank(),
        title = &quot;Diary Production (millions of tonnes)&quot;)+
@@ -529,34 +504,27 @@ dairyproduction_SA &lt;- dairyproduction_SA %&gt;%
   theme_minimal() +
   theme(panel.grid.minor = element_blank())</code></pre>
 </div>
-<div id="plot-of-relationship-between-dairy-production-and-consumption" class="section level1">
-<h1>Plot of relationship between dairy production and consumption</h1>
-<pre class="r"><code>dairy_prod_2021 &lt;- dairyproduction_SA %&gt;%
-  filter(Year ==2021) %&gt;%
-  select(-`Milk Production (tonnes)`)
-
-dairy_cons_2021 &lt;- dairyconsumption_SA %&gt;%
-  filter(Year==2021) %&gt;%
-  select(-`Milk consumption (kilograms per year per capita)`)
+<div id="plot-of-relationship-between-dairy-production-and-consumption" class="section level3">
+<h3>Plot of relationship between dairy production and consumption</h3>
+<pre class="r"><code>bothdairy_cons_prod &lt;- merge(dairyproduction_SA_mean,dairyconsumption_SA_mean)
 
 
-dairy_prod_cons &lt;- merge(dairy_cons_2021,dairy_prod_2021)
-
-dairy_prod_cons&lt;- dairy_prod_cons %&gt;%
-  mutate(Ratio_prod_by_cons= mean_production/mean_consumption) %&gt;%
+bothdairy_cons_prod &lt;- bothdairy_cons_prod %&gt;%
+  mutate(Ratio_prod_by_cons = mean_production/mean_consumption) %&gt;%
   mutate(num = 1) %&gt;%
   group_by(Entity,Ratio_prod_by_cons) %&gt;%
   summarise(dum &lt;- mean(num)) %&gt;%
   select(Entity,Ratio_prod_by_cons)</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;Entity&#39;. You can override using the
 ## `.groups` argument.</code></pre>
-<pre class="r"><code>dairy_prodcons_SA &lt;- dairy_prod_cons %&gt;%
-  right_join(south_america, by = c(&quot;Entity&quot; = &quot;region&quot;))
+<pre class="r"><code>bothdairy_cons_prod_SA &lt;- bothdairy_cons_prod %&gt;%
+  right_join(south_america, by = c(&quot;Entity&quot; = &quot;region&quot;)) 
 
-p.R &lt;- ggplot(data= dairy_prodcons_SA, aes(x=long,y=lat)) +
+p.R &lt;- ggplot(data= bothdairy_cons_prod_SA, aes(x=long,y=lat)) +
   geom_polygon(aes(color=Entity,group=group, fill=Ratio_prod_by_cons),color = &quot;gray20&quot;)+
-  geom_text(data=south_america_code,aes(label=Code),color=&quot;gray15&quot;,fontface=&quot;bold&quot;,
-            size =3.5)+
+  annotate(&quot;text&quot;,x=-35,y=-30,label=&quot;Uruguay&quot;, color=&quot;gray15&quot;,fontface=&quot;bold&quot;)+
+  geom_segment(aes(x = -45, y = -32, xend = -55.5, yend = -33),
+                  arrow = arrow(length = unit(0.2, &quot;cm&quot;))) +
   coord_map(&quot;conic&quot;, lat0=-23) +
   scale_fill_gradient(low=&quot;gray95&quot;,high = &quot;green3&quot;, label = c(&quot;0&quot;,&quot;50&quot;,&quot;100&quot;,&quot;150&quot;,&quot;200&quot;,&quot;250&quot;))+
   annotate(&quot;text&quot;,x=-55,y=15, label = &quot;Dairy Produced per \nDairy Consumed&quot;, fontface=&quot;bold&quot;,
@@ -567,21 +535,26 @@ p.R &lt;- ggplot(data= dairy_prodcons_SA, aes(x=long,y=lat)) +
   annotate(&quot;text&quot;,x=-40,y=-50,label= &quot;Greenish countries \nproduce way more \ndairy \nthan they \nconsume&quot;, size=3,fontface=&quot;bold&quot;) +
   theme_minimal()+
   theme(legend.position = &quot;bottom&quot;,
-        legend.title = element_text(size=7))</code></pre>
+        legend.title = element_text(size=7),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())</code></pre>
 </div>
-<div id="dashboard-and-png" class="section level1">
-<h1>Dashboard and PNG</h1>
+<div id="dashboard-and-png" class="section level3">
+<h3>Dashboard and PNG</h3>
 <pre class="r"><code>Dashboard &lt;- (p.DPline)/(p.DCline)/(p.DP | p.DC | p.R) +
   plot_annotation(title = &quot;South American Countries&#39; dairy consumption and dairy production (2011-2021)&quot;,
-                  subtitle = &quot;Uruguay consumes a lot of dairy and does not produces a lot of diary when compared to other South America Countries&quot;,
+                  subtitle = &quot;Uruguay consumes the most dairy in many years but Uruguay is somewhat in the middle in dairy production when compared to other South America Countries&quot;,
                   caption = &quot;Source: OurWorldInData.org and Food and Agriculture Organization of the United Nations&quot;) 
 
 
 ggsave(plot = Dashboard, filename = &quot;SouthAmerica_Dairy.png&quot;,
        width = 13,height = 15,dpi=600)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values (`geom_text()`).
-## Removed 2 rows containing missing values (`geom_text()`).
-## Removed 2 rows containing missing values (`geom_text()`).</code></pre>
+<pre><code>## Warning: Removed 157 rows containing missing values (`geom_line()`).
+## Removed 157 rows containing missing values (`geom_line()`).</code></pre>
 </div>
 
 
