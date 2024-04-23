@@ -132,8 +132,12 @@ both_albums_songs <- both_albums_songs %>%
 metadataTaylorSwift <- metadataTaylorSwift %>%
   filter(Album %in% c("Red","Midnights"))
 
-# Remove some songs that have slightly different titles between the dataframes
-# snow on the beach, antihero, state of grace
+metadataTaylorSwift$`Song Name` <- replace(metadataTaylorSwift$`Song Name`,metadataTaylorSwift$`Song Name`=="Snow On The Beach (feat. Lana Del Rey)","Snow On the Beach")
+
+metadataTaylorSwift$`Song Name` <- replace(metadataTaylorSwift$`Song Name`,metadataTaylorSwift$`Song Name`=="Anti-Hero","Anti Hero")
+
+metadataTaylorSwift$`Song Name` <- replace(metadataTaylorSwift$`Song Name`,metadataTaylorSwift$`Song Name`=="State Of Grace","State of Grace")
+
 Metadata_Both <- merge(metadataTaylorSwift,both_albums_songs, by=c("Song Name","Album")) %>%
   filter(sentiment == "positive")
 
