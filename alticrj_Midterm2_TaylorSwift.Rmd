@@ -20,6 +20,7 @@ library(ggwordcloud)
 
 
 ### Reading in the data
+
 ```{r}
 urlTaylorSwift <- ("https://raw.githubusercontent.com/adashofdata/taylor_swift_data/main/Taylor_Swift_Genius/taylor_swift_genius_data.csv")
 
@@ -30,7 +31,7 @@ metadataTaylorSwift <- read_csv(url(urlTaylorSwift_Meta))
 TaylorSwift <- read_csv(url(urlTaylorSwift))
 ```
 
-
+### Selecting only albums choosen and unnesting tokens while creating dataframe for only the top 300 words in each album
 
 ```{r}
 TaylorSwift_Red <- TaylorSwift %>%
@@ -199,6 +200,6 @@ Dashboard <- (p.WCMN + p.WCR + p.S) / (p.Acousticness + p.Tempo + p.Valence) +
                   caption = "Source: https://github.com/adashofdata/taylor_swift_data")
 
 ggsave(plot=Dashboard, filename = "TaylorSwift_Album.png",
-       width = 20,height = 12,dpi=600)
+       width = 18,height = 12,dpi=600)
 ```
 

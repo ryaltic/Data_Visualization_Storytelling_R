@@ -400,6 +400,10 @@ metadataTaylorSwift &lt;- read_csv(url(urlTaylorSwift_Meta))</code></pre>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div id="selecting-only-albums-choosen-and-unnesting-tokens-while-creating-dataframe-for-only-the-top-300-words-in-each-album" class="section level3">
+<h3>Selecting only albums choosen and unnesting tokens while creating
+dataframe for only the top 300 words in each album</h3>
 <pre class="r"><code>TaylorSwift_Red &lt;- TaylorSwift %&gt;%
   filter(Album == &quot;Red&quot;)
 
@@ -563,7 +567,7 @@ p.Acousticness &lt;- ggplot(Metadata_Both) +
                   caption = &quot;Source: https://github.com/adashofdata/taylor_swift_data&quot;)
 
 ggsave(plot=Dashboard, filename = &quot;TaylorSwift_Album.png&quot;,
-       width = 20,height = 12,dpi=600)</code></pre>
+       width = 18,height = 12,dpi=600)</code></pre>
 </div>
 </div>
 
