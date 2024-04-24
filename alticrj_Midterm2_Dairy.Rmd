@@ -187,10 +187,10 @@ p.R <- ggplot(data= bothdairy_cons_prod_SA, aes(x=long,y=lat)) +
 Dashboard <- (p.DPline)/(p.DCline)/(p.DP | p.DC | p.R) +
   plot_annotation(title = "South American Countries' dairy consumption and dairy production (2011-2021)",
                   subtitle = "Uruguay consumes the most dairy in many years but Uruguay is somewhat in the middle in dairy production when compared to other South America Countries",
-                  caption = "Source: OurWorldInData.org and Food and Agriculture Organization of the United Nations") 
+                  caption = "Source: OurWorldInData.org and Food and Agriculture Organization of the United Nations")
 
 
 ggsave(plot = Dashboard, filename = "SouthAmerica_Dairy.png",
-       width = 13,height = 15,dpi=600)
+       width = 13,height = 14,dpi=600)
 ```
 

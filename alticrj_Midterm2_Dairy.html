@@ -548,11 +548,11 @@ p.R &lt;- ggplot(data= bothdairy_cons_prod_SA, aes(x=long,y=lat)) +
 <pre class="r"><code>Dashboard &lt;- (p.DPline)/(p.DCline)/(p.DP | p.DC | p.R) +
   plot_annotation(title = &quot;South American Countries&#39; dairy consumption and dairy production (2011-2021)&quot;,
                   subtitle = &quot;Uruguay consumes the most dairy in many years but Uruguay is somewhat in the middle in dairy production when compared to other South America Countries&quot;,
-                  caption = &quot;Source: OurWorldInData.org and Food and Agriculture Organization of the United Nations&quot;) 
+                  caption = &quot;Source: OurWorldInData.org and Food and Agriculture Organization of the United Nations&quot;)
 
 
 ggsave(plot = Dashboard, filename = &quot;SouthAmerica_Dairy.png&quot;,
-       width = 13,height = 15,dpi=600)</code></pre>
+       width = 13,height = 14,dpi=600)</code></pre>
 <pre><code>## Warning: Removed 157 rows containing missing values (`geom_line()`).
 ## Removed 157 rows containing missing values (`geom_line()`).</code></pre>
 </div>
