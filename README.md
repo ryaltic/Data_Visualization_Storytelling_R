@@ -5,5 +5,12 @@ This repository includes 2 PNG files, 2 RMD files, and 2 HTML files. The reposit
 ### Dairy 
 The files retaining toward dairy takes data from the Food and Agriculture Organization of the United Nations and OurWorldInData.org. The Dairy files filters out data that is not from 2011 to 2021 about dairy consumption and production. The file also uses map data from R and filters out any region not in South America. The file also filters out two South American countries that there are not data for: French Guiena and Trindad and Tobago. French Guiena was filtered out because there is no dairy data for that country and Trindad and Tobago was filtered out because the map data recognize Trindad and Tobago as two separate countries but the dairy data recognizes Trindad and Tobago as one country. The HTML, RMD, and PNG file looks at mean dairy production, mean dairy consumption, ratio between mean dairy production per mean dairy consumption, and two line plots looking at dairy production and dairy consumption over time. By looking at the plots produced, Uruguay consumes the most dairy, however, Uruguay is only middle of the pack in terms of producing dairy. 
 
+![SouthAmerica_Dairy](https://github.com/alticrj/alticrj_STA309_Midterm_Exam2/assets/112988139/fea6baba-9e9c-4dc2-8dc2-d5828fdb80ec)
+
+
 ###  Taylor Swift
 The files retaining towards Taylor Swift takes data from https://github.com/adashofdata/taylor_swift_data. The files looks at Taylor Swift words in each song and metadata for each song of Taylor Swift. The Taylor Swift files filters out any song that isn't in her Red album or Midnights album. The files make a word cloud for the Red album and a word cloud for the Midnights album showing the top 300 words mentioned in each album after removing stop words. The files also produce a plot comparing sentiments of each album which shows that the Red album is slightly more positive than the Midnights album in terms of sentiment. On top of that, The files make three plots that looks at proportion of positive sentiments in a song in either Red or Midnights compared to tempo, valence, and acousticness. Those plots reveal that songs that have more positive sentiments are more likely to have a higher valence rating, acousticness rating, or tempo. The Red album features songs with higher valence rating, while the Midnights album feature songs that have higher acousticness rating and more tempo.
+
+![TaylorSwift_Album](https://github.com/alticrj/alticrj_STA309_Midterm_Exam2/assets/112988139/fb3984cb-88b7-4974-8d34-3cad19ca0830)
+
+
