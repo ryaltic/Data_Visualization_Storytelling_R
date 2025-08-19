@@ -1,4 +1,4 @@
-# alticrj_STA309_Midterm_Exam2
+# This project was for a class where the purpose of project was to tell a story about the two datasets
 
 This repository includes 2 PNG files, 2 RMD files, and 2 HTML files. The repository contains file that looks at dairy consumption and Production within South America through 2011 to 2021.  The repository also contains files that analyzes two Taylor Swift's albums: Red and Midnights based on sentiments, metadata, and most popular words.
 
